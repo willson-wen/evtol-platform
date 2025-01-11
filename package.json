@@ -1,0 +1,41 @@
+{
+  "name": "evtol-platform",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3002",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "seed": "ts-node scripts/seed.ts",
+    "seed:jobs": "ts-node scripts/seed-jobs.ts",
+    "seed:research": "ts-node scripts/seed-research.ts"
+  },
+  "dependencies": {
+    "@tiptap/extension-image": "^2.11.2",
+    "@tiptap/extension-link": "^2.11.2",
+    "@tiptap/react": "^2.11.2",
+    "@tiptap/starter-kit": "^2.11.2",
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.4.7",
+    "isomorphic-dompurify": "^2.20.0",
+    "mongoose": "^8.0.3",
+    "next": "14.0.4",
+    "next-auth": "^4.24.5",
+    "next-themes": "^0.4.4",
+    "react": "^18",
+    "react-dom": "^18"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/next-auth": "^3.15.0",
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "autoprefixer": "^10.0.1",
+    "postcss": "^8",
+    "tailwindcss": "^3.3.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5"
+  }
+}
