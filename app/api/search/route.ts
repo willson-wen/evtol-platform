@@ -6,31 +6,61 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('q');
-
-    if (!query) {
-      return NextResponse.json(
-        { error: '搜索关键词不能为空' },
-        { status: 400 }
-      );
-    }
+    const type = searchParams.get('type') || 'all'; // 'company', 'product', 'all'
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '10');
 
     await connectDB();
 
-    // 创建搜索正则表达式，不区分大小写
-    const searchRegex = new RegExp(query, 'i');
+    let searchQuery: any = {};
+    if (query) {
+      const searchRegex = new RegExp(query, 'i');
+      if (type === 'company') {
+        searchQuery = {
+          $or: [
+            { name: searchRegex },
+            { description: searchRegex },
+            { location: searchRegex }
+          ]
+        };
+      } else if (type === 'product') {
+        searchQuery = {
+          'products.name': searchRegex
+        };
+      } else {
+        searchQuery = {
+          $or: [
+            { name: searchRegex },
+            { description: searchRegex },
+            { location: searchRegex },
+            { 'products.name': searchRegex },
+            { 'products.description': searchRegex }
+          ]
+        };
+      }
+    }
 
-    // 在公司名称、描述和产品中搜索
-    const companies = await Company.find({
-      $or: [
-        { name: searchRegex },
-        { description: searchRegex },
-        { 'products.name': searchRegex },
-        { 'products.description': searchRegex }
-      ]
-    }).select('name description location status');
+    const skip = (page - 1) * limit;
+    
+    const [results, total] = await Promise.all([
+      Company.find(searchQuery)
+        .select('name description logo location status')
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      Company.countDocuments(searchQuery)
+    ]);
 
-    return NextResponse.json(companies);
-  } catch (error: any) {
+    return NextResponse.json({
+      results,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit)
+      }
+    });
+  } catch (error) {
     console.error('搜索失败:', error);
     return NextResponse.json(
       { error: '搜索失败' },

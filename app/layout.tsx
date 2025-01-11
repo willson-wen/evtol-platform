@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
-import { ThemeProvider } from './providers';
+import Providers from './providers';
 import { AuthProvider } from './providers/AuthProvider';
 import Navbar from './components/Navbar';
 
@@ -20,12 +20,12 @@ export default function RootLayout({
   return (
     <html lang="zh" suppressHydrationWarning>
       <body className={inter.className}>
-        <ThemeProvider>
+        <Providers>
           <AuthProvider>
             <Navbar />
             {children}
           </AuthProvider>
-        </ThemeProvider>
+        </Providers>
       </body>
     </html>
   );

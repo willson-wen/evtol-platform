@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { hash } from 'bcryptjs';
+import bcrypt from 'bcryptjs';
 import { connectDB } from '@/lib/mongodb';
 import User from '@/models/User';
 
@@ -7,24 +7,27 @@ export async function POST(req: Request) {
   try {
     const { name, email, password } = await req.json();
 
-    // 验证输入
-    if (!name) {
+    // 验证必填字段
+    if (!name || !email || !password) {
       return NextResponse.json(
-        { message: '请输入用户名' },
+        { error: '请填写所有必填字段' },
         { status: 400 }
       );
     }
 
-    if (!email) {
+    // 验证邮箱格式
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
       return NextResponse.json(
-        { message: '请输入邮箱地址' },
+        { error: '请输入有效的邮箱地址' },
         { status: 400 }
       );
     }
 
-    if (!password) {
+    // 验证密码长度
+    if (password.length < 6) {
       return NextResponse.json(
-        { message: '请输入密码' },
+        { error: '密码长度至少为6个字符' },
         { status: 400 }
       );
     }
@@ -36,22 +39,13 @@ export async function POST(req: Request) {
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return NextResponse.json(
-        { message: '该邮箱已被注册' },
+        { error: '该邮箱已被注册' },
         { status: 400 }
       );
     }
 
-    // 检查用户名是否已被使用
-    const existingName = await User.findOne({ name });
-    if (existingName) {
-      return NextResponse.json(
-        { message: '该用户名已被使用' },
-        { status: 400 }
-      );
-    }
-
-    // 密码加密
-    const hashedPassword = await hash(password, 12);
+    // 加密密码
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     // 创建新用户
     const user = await User.create({
@@ -75,7 +69,7 @@ export async function POST(req: Request) {
   } catch (error: any) {
     console.error('注册失败:', error);
     return NextResponse.json(
-      { message: error.message || '注册过程中发生错误' },
+      { error: '注册失败，请稍后重试' },
       { status: 500 }
     );
   }

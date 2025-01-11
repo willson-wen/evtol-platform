@@ -1,35 +1,21 @@
 import Link from 'next/link';
-import Image from 'next/image';
+import { connectDB } from '@/lib/mongodb';
+import Company from '@/models/Company';
 
-// 示例公司数据
-const companies = [
-  {
-    id: 1,
-    name: 'Joby Aviation',
-    description: '专注于开发电动垂直起降飞行器，致力于提供安全、安静和便捷的空中出行服务。',
-    logo: '/images/joby.png',
-    status: '适航认证进行中',
-    location: '美国',
-  },
-  {
-    id: 2,
-    name: 'Lilium',
-    description: '开发创新的电动喷气式垂直起降飞行器，旨在革新区域航空出行。',
-    logo: '/images/lilium.png',
-    status: '原型机测试阶段',
-    location: '德国',
-  },
-  {
-    id: 3,
-    name: 'EHang',
-    description: '全球领先的自动驾驶航空器技术公司，专注于开发和商业化自动驾驶飞行器。',
-    logo: '/images/ehang.png',
-    status: '已获中国适航认证',
-    location: '中国',
-  },
-];
+async function getCompanies() {
+  try {
+    await connectDB();
+    const companies = await Company.find().limit(3);
+    return companies;
+  } catch (error) {
+    console.error('获取公司数据失败:', error);
+    return [];
+  }
+}
 
-export default function Home() {
+export default async function Home() {
+  const companies = await getCompanies();
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
       {/* Hero Section */}
@@ -45,16 +31,20 @@ export default function Home() {
 
         {/* Search Bar */}
         <div className="mt-10 max-w-3xl mx-auto">
-          <div className="relative">
+          <form action="/search" className="relative">
             <input
               type="text"
+              name="q"
               placeholder="搜索eVTOL公司或产品..."
               className="w-full px-6 py-4 text-lg border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
-            <button className="absolute right-4 top-1/2 transform -translate-y-1/2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+            <button 
+              type="submit"
+              className="absolute right-4 top-1/2 transform -translate-y-1/2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
               搜索
             </button>
-          </div>
+          </form>
         </div>
 
         {/* Category Links */}
@@ -80,24 +70,13 @@ export default function Home() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {companies.map((company) => (
             <div
-              key={company.id}
+              key={company._id.toString()}
               className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
             >
               <div className="p-6">
-                <div className="flex items-center mb-4">
-                  <div className="w-12 h-12 relative mr-4">
-                    <Image
-                      src={company.logo}
-                      alt={company.name}
-                      layout="fill"
-                      objectFit="contain"
-                      className="rounded-full"
-                    />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900">{company.name}</h3>
-                    <p className="text-sm text-gray-500">{company.location}</p>
-                  </div>
+                <div className="mb-4">
+                  <h3 className="text-xl font-semibold text-gray-900">{company.name}</h3>
+                  <p className="text-sm text-gray-500">{company.location}</p>
                 </div>
                 <p className="text-gray-600 mb-4 line-clamp-2">{company.description}</p>
                 <div className="flex justify-between items-center">
@@ -105,7 +84,7 @@ export default function Home() {
                     {company.status}
                   </span>
                   <Link
-                    href={`/company/${company.id}`}
+                    href={`/company/${company._id}`}
                     className="text-blue-600 hover:text-blue-800 text-sm font-medium"
                   >
                     查看详情 →
