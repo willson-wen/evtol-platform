@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { connectDB } from '@/lib/mongodb';
 import Comment from '@/models/Comment';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/app/api/auth/auth.config';
 
 // 获取评论列表
 export async function GET(request: Request) {

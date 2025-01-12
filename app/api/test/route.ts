@@ -1,10 +1,14 @@
 import { NextResponse } from 'next/server';
-import clientPromise from '@/lib/mongodb';
+import { connectDB } from '@/lib/mongodb';
+import mongoose from 'mongoose';
 
 export async function GET() {
   try {
-    const client = await clientPromise;
-    const db = client.db("evtol_db");
+    await connectDB();
+    const db = mongoose.connection.db;
+    if (!db) {
+      throw new Error('数据库连接未初始化');
+    }
     
     // 简单的测试查询
     const test = await db.command({ ping: 1 });

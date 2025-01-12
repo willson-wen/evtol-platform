@@ -1,13 +1,42 @@
 import { connectDB } from '@/lib/mongodb';
 import Company from '@/models/Company';
 
-async function getCertificationData() {
+interface Certification {
+  name: string;
+  description: string;
+  status: string;
+}
+
+interface CompanyData {
+  _id: string;
+  name: string;
+  logo?: string;
+  location: string;
+  certifications: Certification[];
+}
+
+async function getCertificationData(): Promise<CompanyData[]> {
   try {
     await connectDB();
-    const companies = await Company.find()
+    const rawCompanies = await Company.find()
       .select('name logo location certifications')
       .sort({ 'certifications.updatedAt': -1 })
       .lean();
+
+    const companies: CompanyData[] = rawCompanies.map(company => ({
+      _id: String(company._id),
+      name: String(company.name || ''),
+      logo: company.logo ? String(company.logo) : undefined,
+      location: String(company.location || ''),
+      certifications: Array.isArray(company.certifications) 
+        ? company.certifications.map(cert => ({
+            name: String(cert.name || ''),
+            description: String(cert.description || ''),
+            status: String(cert.status || '')
+          }))
+        : []
+    }));
+
     return companies;
   } catch (error) {
     console.error('获取认证数据失败:', error);
@@ -15,11 +44,17 @@ async function getCertificationData() {
   }
 }
 
+interface RegionData {
+  title: string;
+  description: string;
+  companies: CompanyData[];
+}
+
 export default async function CertificationPage() {
   const companies = await getCertificationData();
 
   // 按地区分组认证数据
-  const regionData = {
+  const regionData: Record<string, RegionData> = {
     '中国': {
       title: '中国适航认证',
       description: 'CAAC（中国民用航空局）适航认证进展',
@@ -77,7 +112,7 @@ export default async function CertificationPage() {
                           </div>
 
                           <div className="mt-4 space-y-4">
-                            {company.certifications?.map((cert: any) => (
+                            {company.certifications?.map((cert) => (
                               <div key={cert.name} className="flex items-center justify-between">
                                 <div className="flex-1">
                                   <h4 className="text-sm font-medium text-gray-900">

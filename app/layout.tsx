@@ -1,10 +1,12 @@
 import type { Metadata } from 'next';
-import Providers from './providers';
 import './globals.css';
+import Providers from './providers';
+import { AuthProvider } from './providers/AuthProvider';
+import Navbar from './components/Navbar';
 
 export const metadata: Metadata = {
-  title: '探索 eVTOL 的未来',
-  description: '低空飞行器和城市空中交通的前沿资讯',
+  title: '深圳低空经济研究小组',
+  description: '专注于eVTOL（电动垂直起降）行业的综合信息平台',
 };
 
 export default function RootLayout({
@@ -14,8 +16,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="zh" suppressHydrationWarning>
-      <body className="min-h-screen bg-background font-sans antialiased">
-        <Providers>{children}</Providers>
+      <body className="font-sans">
+        <Providers>
+          <AuthProvider>
+            <Navbar />
+            {children}
+          </AuthProvider>
+        </Providers>
       </body>
     </html>
   );

@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+import { NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import Comment from '@/models/Comment';
 import { authOptions } from '@/app/api/auth/auth.config';
@@ -8,19 +8,19 @@ export async function POST(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  const session = await getServerSession(authOptions);
-  
-  if (!session?.user) {
-    return NextResponse.json(
-      { error: '请先登录' },
-      { status: 401 }
-    );
-  }
-
   try {
-    await connectDB();
-    const comment = await Comment.findById(params.id);
+    const session = await getServerSession(authOptions);
 
+    if (!session?.user?.email) {
+      return NextResponse.json(
+        { error: '未授权访问' },
+        { status: 401 }
+      );
+    }
+
+    await connectDB();
+
+    const comment = await Comment.findById(params.id);
     if (!comment) {
       return NextResponse.json(
         { error: '评论不存在' },
@@ -28,29 +28,25 @@ export async function POST(
       );
     }
 
-    const userId = session.user.id;
-    const likedIndex = comment.likedBy.indexOf(userId);
+    // 检查用户是否已经点赞
+    const userEmail = session.user.email;
+    const likedIndex = comment.likes.indexOf(userEmail);
 
     if (likedIndex === -1) {
-      // 添加点赞
-      comment.likes += 1;
-      comment.likedBy.push(userId);
+      // 如果用户未点赞，添加点赞
+      comment.likes.push(userEmail);
     } else {
-      // 取消点赞
-      comment.likes -= 1;
-      comment.likedBy.splice(likedIndex, 1);
+      // 如果用户已点赞，取消点赞
+      comment.likes.splice(likedIndex, 1);
     }
 
     await comment.save();
 
-    return NextResponse.json({
-      likes: comment.likes,
-      isLiked: likedIndex === -1
-    });
-  } catch (error) {
-    console.error('Like comment error:', error);
+    return NextResponse.json(comment);
+  } catch (error: any) {
+    console.error('点赞操作失败:', error);
     return NextResponse.json(
-      { error: '操作失败' },
+      { error: '点赞操作失败' },
       { status: 500 }
     );
   }
