@@ -1,12 +1,10 @@
 import NextAuth, { AuthOptions, NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
-import clientPromise from '@/lib/mongodb';
+import { connectDB } from '@/lib/mongodb';
 import User from '@/models/User';
-import { MongoDBAdapter } from "@auth/mongodb-adapter"
 
 export const authOptions: NextAuthOptions = {
-  adapter: MongoDBAdapter(clientPromise),
   providers: [
     CredentialsProvider({
       name: 'credentials',
@@ -19,9 +17,8 @@ export const authOptions: NextAuthOptions = {
           throw new Error('请输入邮箱和密码');
         }
 
-        const client = await clientPromise;
-        const db = client.db();
-        const user = await db.collection('users').findOne({ email: credentials.email });
+        await connectDB();
+        const user = await User.findOne({ email: credentials.email });
 
         if (!user) {
           throw new Error('用户不存在');
