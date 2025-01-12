@@ -4,6 +4,10 @@ import { authOptions } from '@/app/api/auth/auth.config';
 import { connectDB } from '@/lib/mongodb';
 import Notification from '@/models/Notification';
 
+// 添加导出配置来启用动态功能
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 // 获取用户通知列表
 export async function GET(request: Request) {
   try {
