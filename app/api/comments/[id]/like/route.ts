@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { connectDB } from '@/lib/mongodb';
 import Comment from '@/models/Comment';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/app/api/auth/auth.config';
 
 export async function POST(
   request: Request,
@@ -48,9 +48,9 @@ export async function POST(
       isLiked: likedIndex === -1
     });
   } catch (error) {
-    console.error('处理点赞失败:', error);
+    console.error('Like comment error:', error);
     return NextResponse.json(
-      { error: '处理点赞失败' },
+      { error: '操作失败' },
       { status: 500 }
     );
   }
