@@ -2,11 +2,18 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { connectDB } from '@/lib/mongodb';
 import Company from '@/models/Company';
+import { Types } from 'mongoose';
 
 async function getCompanyData(id: string) {
   try {
+    // 验证 ID 是否为有效的 ObjectId
+    if (!Types.ObjectId.isValid(id)) {
+      console.error('无效的 ObjectId:', id);
+      return null;
+    }
+
     await connectDB();
-    const company = await Company.findOne({ _id: id });
+    const company = await Company.findOne({ _id: new Types.ObjectId(id) });
     if (!company) return null;
     return company;
   } catch (error) {

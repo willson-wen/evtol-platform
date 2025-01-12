@@ -39,8 +39,7 @@ const userSchema = new Schema<IUser>(
   }
 );
 
-// 创建索引
-userSchema.index({ email: 1 });
+// 只为 resetToken 创建索引
 userSchema.index({ resetToken: 1 });
 
 export default models.User || model<IUser>('User', userSchema); 
