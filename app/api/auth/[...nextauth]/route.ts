@@ -1,12 +1,12 @@
-import { NextAuthOptions } from 'next-auth';
-import { NextResponse } from 'next/server';
-import NextAuth from 'next-auth/next';
+import NextAuth, { AuthOptions, NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
-import { connectDB } from '@/lib/mongodb';
+import clientPromise from '@/lib/mongodb';
 import User from '@/models/User';
+import { MongoDBAdapter } from "@auth/mongodb-adapter"
 
 export const authOptions: NextAuthOptions = {
+  adapter: MongoDBAdapter(clientPromise),
   providers: [
     CredentialsProvider({
       name: 'credentials',
@@ -19,9 +19,10 @@ export const authOptions: NextAuthOptions = {
           throw new Error('请输入邮箱和密码');
         }
 
-        await connectDB();
+        const client = await clientPromise;
+        const db = client.db();
+        const user = await db.collection('users').findOne({ email: credentials.email });
 
-        const user = await User.findOne({ email: credentials.email });
         if (!user) {
           throw new Error('用户不存在');
         }
@@ -39,37 +40,21 @@ export const authOptions: NextAuthOptions = {
           id: user._id.toString(),
           name: user.name,
           email: user.email,
-          role: user.role,
+          role: user.role || 'user'
         };
       }
     })
   ],
-  callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.role = user.role;
-      }
-      return token;
-    },
-    async session({ session, token }) {
-      if (session.user) {
-        session.user.id = token.sub as string;
-        session.user.role = token.role as string;
-      }
-      return session;
-    }
-  },
   pages: {
-    signIn: '/login',
-    signOut: '/',
-    error: '/login',
+    signIn: '/auth/signin',
+    signOut: '/auth/signout',
+    error: '/auth/error',
   },
   session: {
-    strategy: 'jwt',
+    strategy: 'jwt' as const,
   },
   secret: process.env.NEXTAUTH_SECRET,
 };
 
 const handler = NextAuth(authOptions);
-
 export { handler as GET, handler as POST }; 

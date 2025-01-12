@@ -10,6 +10,7 @@
     "seed": "ts-node scripts/seed.ts"
   },
   "dependencies": {
+    "@auth/mongodb-adapter": "^3.7.4",
     "@tiptap/extension-image": "^2.11.2",
     "@tiptap/extension-link": "^2.11.2",
     "@tiptap/react": "^2.11.2",
