@@ -2,13 +2,14 @@ import { NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import Company from '@/models/Company';
 
+export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('q');
-    const type = searchParams.get('type') || 'all'; // 'company', 'product', 'all'
+    const type = searchParams.get('type') || 'all';
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
 
