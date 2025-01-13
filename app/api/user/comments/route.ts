@@ -4,7 +4,6 @@ import { authOptions } from '@/app/api/auth/auth.config';
 import { connectDB } from '@/lib/mongodb';
 import Comment from '@/models/Comment';
 
-export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
