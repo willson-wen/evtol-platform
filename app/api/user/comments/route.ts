@@ -4,6 +4,8 @@ import { authOptions } from '@/app/api/auth/auth.config';
 import { connectDB } from '@/lib/mongodb';
 import Comment from '@/models/Comment';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: Request) {
   try {
     const session = await getServerSession(authOptions);
@@ -30,22 +32,15 @@ export async function GET(request: Request) {
       .lean();
 
     // 处理评论数据
-    const formattedComments = await Promise.all(
-      comments.map(async (comment) => {
-        // 获取新闻标题（这里需要根据实际的新闻模型来调整）
-        // const news = await News.findById(comment.newsId).select('title').lean();
-        
-        return {
-          _id: comment._id,
-          content: comment.content,
-          newsId: comment.newsId,
-          newsTitle: '新闻标题', // 这里需要替换为实际的新闻标题
-          createdAt: comment.createdAt,
-          likes: comment.likes,
-          replyCount: comment.replyCount || 0,
-        };
-      })
-    );
+    const formattedComments = comments.map((comment) => ({
+      _id: comment._id,
+      content: comment.content,
+      newsId: comment.newsId,
+      newsTitle: comment.newsTitle || '新闻标题',
+      createdAt: comment.createdAt,
+      likes: comment.likes,
+      replyCount: comment.replyCount || 0,
+    }));
 
     return NextResponse.json({
       comments: formattedComments,
@@ -58,6 +53,9 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     console.error('Get user comments error:', error);
-    return new NextResponse('Internal Server Error', { status: 500 });
+    return NextResponse.json(
+      { error: 'Internal Server Error' },
+      { status: 500 }
+    );
   }
 } 
